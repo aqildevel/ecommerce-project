@@ -1,8 +1,10 @@
 package com.course.productservice.productservice.services;
 
+import com.course.productservice.productservice.Utils.CommonApi;
 import com.course.productservice.productservice.dtos.FakeStoreProductDto;
 import com.course.productservice.productservice.models.Category;
 import com.course.productservice.productservice.models.Product;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,6 +13,7 @@ import java.util.List;
 @Service // this service annotation will create the object of class at time of initialization
 public class FakeStoreProductService implements ProductService{
     private RestTemplate restTemplate;
+    private CommonApi commonApi;
     FakeStoreProductService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
     }
@@ -31,25 +34,16 @@ public class FakeStoreProductService implements ProductService{
             return null;
         }
 
-        return fakeStoreProductDtoToProduct(fakeStoreProductDto);
-    }
-
-    private Product fakeStoreProductDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
-        Product product = new Product();
-        product.setId(fakeStoreProductDto.getId());
-        product.setTitile(fakeStoreProductDto.getTitle());
-        product.setDescription(fakeStoreProductDto.getDescription());
-        product.setPrice(fakeStoreProductDto.getPrice());
-        product.setImage(fakeStoreProductDto.getImage());
-        Category category = new Category();
-        category.setDescription(fakeStoreProductDto.getCategory());
-        product.setCategory(category);
-        return product;
+        return commonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
     }
 
     @Override
     public List<Product> getAllProducts() {
+      FakeStoreProductDto[] fakeStoreProductDtos = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
+      //why not use List<FakeStoreProductDto>.class => because generic nature of list, array is not generic that's why we have use FakeStoreProductDto[].class as responsetyp
+      //we got array of fakestoreproductdtos, we will have convert it to product
 
-        return null;
+      return commonApi.getListOfProductFromFakestoreproductarray(fakeStoreProductDtos);
     }
+
 }
