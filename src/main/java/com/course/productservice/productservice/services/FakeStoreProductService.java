@@ -13,7 +13,6 @@ import java.util.List;
 @Service // this service annotation will create the object of class at time of initialization
 public class FakeStoreProductService implements ProductService{
     private RestTemplate restTemplate;
-    private CommonApi commonApi;
     FakeStoreProductService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
     }
@@ -34,7 +33,7 @@ public class FakeStoreProductService implements ProductService{
             return null;
         }
 
-        return commonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
+        return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
     }
 
     @Override
@@ -43,7 +42,7 @@ public class FakeStoreProductService implements ProductService{
       //why not use List<FakeStoreProductDto>.class => because generic nature of list, array is not generic that's why we have use FakeStoreProductDto[].class as responsetyp
       //we got array of fakestoreproductdtos, we will have convert it to product
 
-      return commonApi.getListOfProductFromFakestoreproductarray(fakeStoreProductDtos);
+      return CommonApi.getListOfProductFromFakestoreproductarray(fakeStoreProductDtos);
     }
 
 }

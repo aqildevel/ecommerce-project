@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CommonApi {
-    public List<Product> getListOfProductFromFakestoreproductarray(FakeStoreProductDto[] fakeStoreProductDtos) {
+    public static List<Product> getListOfProductFromFakestoreproductarray(FakeStoreProductDto[] fakeStoreProductDtos) {
         //I have to use functional programming mean lamda express
         List<Product> products = Arrays.stream(fakeStoreProductDtos)
                                 .map(fakeStoreProductDto -> convertFakeStoreDtoToProduct(fakeStoreProductDto))
@@ -18,7 +18,7 @@ public class CommonApi {
         return products;
     }
 
-    public Product convertFakeStoreDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
+    public static Product convertFakeStoreDtoToProduct(FakeStoreProductDto fakeStoreProductDto) {
         Product product = new Product();
         product.setId(fakeStoreProductDto.getId());
         product.setTitile(fakeStoreProductDto.getTitle());
