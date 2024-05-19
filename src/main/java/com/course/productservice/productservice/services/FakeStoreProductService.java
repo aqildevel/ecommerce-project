@@ -71,13 +71,49 @@ public class FakeStoreProductService implements ProductService{
         fakeStoreProductDto.setDescription(product.getDescription());
         RequestCallback requestCallback = restTemplate.httpEntityCallback(fakeStoreProductDto, FakeStoreProductDto.class);
         HttpMessageConverterExtractor<FakeStoreProductDto> responseExtractor = new HttpMessageConverterExtractor(FakeStoreProductDto.class, restTemplate.getMessageConverters());
-        FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.execute("https://fakestoreapi.com/products/" + id, HttpMethod.POST, requestCallback, responseExtractor);
+        FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.execute("https://fakestoreapi.com/products/" + id, HttpMethod.PUT, requestCallback, responseExtractor);
         if(fakeStoreProductDto1 == null){
             //handle excaption
             //throw ProductNotFoundExeception
             return null;
         }
         return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
+    }
+
+    @Override
+    public Product updateProduct(Long id, Product product) {
+        //first convert product to fakestoredto
+//        FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
+//        fakeStoreProductDto.setPrice(product.getPrice());
+//        fakeStoreProductDto.setDescription(product.getDescription());
+//        fakeStoreProductDto.setTitle(product.getTitile());
+        Category category = new Category();
+        category.setDescription(product.getCategory().getDescription());
+//        fakeStoreProductDto.setCategory(category.getDescription());
+//        FakeStoreProductDto fakeStoreDto = restTemplate.patchForObject("https://fakestoreapi.com/products/" + id, fakeStoreProductDto, FakeStoreProductDto.class);
+        //above patchForObject is not supporting patch http methods
+        // use other way to do this
+        //first get this object by id
+        //update this object and save
+        FakeStoreProductDto oldFakeStoreDtoObject =  restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
+        oldFakeStoreDtoObject.setCategory(category.getDescription());
+        oldFakeStoreDtoObject.setPrice(product.getPrice());
+        oldFakeStoreDtoObject.setTitle(product.getTitile());
+        oldFakeStoreDtoObject.setDescription(product.getDescription());
+        restTemplate.put("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject);
+//        restTemplate.patchForObject("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject, FakeStoreProductDto.class);
+        return CommonApi.convertFakeStoreDtoToProduct(oldFakeStoreDtoObject);
+    }
+
+    @Override
+    public Product addNewProduct(Product product) {
+        FakeStoreProductDto fakeStoreProductDto = CommonApi.convertProductToFakeStoreDto(product);
+       FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.postForObject("https://fakestoreapi.com/products", fakeStoreProductDto, FakeStoreProductDto.class);
+       if(fakeStoreProductDto1 == null){
+           //handle exeception ProductNotFoundExeception
+           return null;
+       }
+       return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
     }
 
 }

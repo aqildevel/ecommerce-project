@@ -1,22 +1,4 @@
-package com.course.productservice.productservice.controllers;
-
-import com.course.productservice.productservice.dtos.FakeStoreProductDto;
-import com.course.productservice.productservice.exceptions.ProductNotFoundException;
-import com.course.productservice.productservice.models.Product;
-import com.course.productservice.productservice.services.ProductService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-//localhost:8080/products
-@RestController
-@RequestMapping("/products")
-public class ProductController {
-    private ProductService productService;
+private ProductService productService;
     //at the time of injection, spring will have to inject it's object/bean and this is possible when
     // we add @Service annotation on implemented class
     ProductController(ProductService productService){
@@ -62,11 +44,25 @@ public class ProductController {
 //                        "custom-header", "200"
 //                )
 //                .body(product);
-
-//        if(product == null){
-//            throw new ProductNotFoundException(id, "product with id is not exists! ");
+        //Let's handle exception here
+//        int x = 1/0; this will throw airthmatics exception
+        ResponseEntity<Product> responseEntity = null;
+//        try{
+//
+//            Product product = productService.getProductById(id);
+//
+//            responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
+//        } catch (Exception e){
+//            responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
 //        }
-        ResponseEntity responseEntity;
+       /* Product product = productService.getProductById(id);
+        if(product == null){
+            throw new ProductNotFoundException(id, "product with id is not exists! ");
+        }
+
+        responseEntity = new ResponseEntity<>(product, HttpStatus.ACCEPTED);
+
+        */
         try {
             Product product = productService.getProductById(id);
             System.out.println(product.getPrice());
@@ -77,78 +73,3 @@ public class ProductController {
         }
         return responseEntity;
     }
-
-    //localhost:8080/products/ => @GetMapping("/")
-    //localhost:8080/product => @GetMapping("")
-    @GetMapping("")
-    public List<Product> getALlProducts(){
-        return productService.getAllProducts();
-    }
-
-    /*
-    we update a product in two ways
-    => PUT : we have given an Id, Update here mean replace old product with this ID with then same prodcut with updated value it means
-    all the attribute of old product object will get updated with new one, if in the old object there was a attribute with value but when
-    we send new object which does not have any value let say null value then that's attribute now will have null value because it got updated
-    => PATCH: when we want update partial field or variable of this product.
-
-
-     */
-    //PUT api
-    @PutMapping("/{id}")
-    public Product updateProductById(@PathVariable Long id, @RequestBody Product product){
-        return productService.replaceProduct(id, product);
-    }
-
-    //Patch api
-    @PatchMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody Product product){
-        return productService.updateProduct(id, product);
-    }
-
-    /**
-     * POST api: add some more product
-     */
-    @PostMapping("")
-    public Product addNewProduct(@RequestBody Product product){
-        return productService.addNewProduct(product);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}

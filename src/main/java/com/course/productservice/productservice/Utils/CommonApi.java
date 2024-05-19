@@ -30,4 +30,16 @@ public class CommonApi {
         product.setCategory(category);
         return product;
     }
+
+    public static FakeStoreProductDto convertProductToFakeStoreDto(Product product) {
+        FakeStoreProductDto fakeStoreProductDto = new FakeStoreProductDto();
+        fakeStoreProductDto.setPrice(product.getPrice());
+        fakeStoreProductDto.setTitle(product.getTitile());
+        fakeStoreProductDto.setDescription(product.getDescription());
+        fakeStoreProductDto.setImage(product.getImage());
+        Category category = new Category();
+        category.setDescription(product.getCategory().getDescription());
+        fakeStoreProductDto.setCategory(category.getDescription());
+        return fakeStoreProductDto;
+    }
 }
