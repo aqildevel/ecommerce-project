@@ -34,7 +34,7 @@ public class ProductController {
     so use @GetMapping("/{id}")
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) throws ArithmeticException, ProductNotFoundException {
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) throws ProductNotFoundException {
         /*
         ResponseEntity:-
         => when send response from server, here we are only sending product but we haven't handle http status code, header etc and
@@ -66,15 +66,24 @@ public class ProductController {
 //        if(product == null){
 //            throw new ProductNotFoundException(id, "product with id is not exists! ");
 //        }
-        ResponseEntity responseEntity;
-        try {
-            Product product = productService.getProductById(id);
-            System.out.println(product.getPrice());
-            responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
-        } catch (NullPointerException e){
-//            System.out.println("product is null " + e.getMessage());
-            throw new ProductNotFoundException(id, e.getMessage());
+//        ResponseEntity responseEntity;
+//        try {
+//            Product product = productService.getProductById(id);
+//            System.out.println(product.getPrice());
+//            responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
+//        } catch (NullPointerException e){
+////            System.out.println("product is null " + e.getMessage());
+//            throw new ProductNotFoundException(id, e.getMessage());
+//        }
+        //use of controlAdvice for global exception handling
+        Product product = productService.getProductById(id);
+        ResponseEntity<Product> responseEntity;
+        if(product == null){
+            responseEntity = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return responseEntity;
         }
+
+        responseEntity = new ResponseEntity<>(product, HttpStatus.OK);
         return responseEntity;
     }
 

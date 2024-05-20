@@ -2,6 +2,7 @@ package com.course.productservice.productservice.services;
 
 import com.course.productservice.productservice.Utils.CommonApi;
 import com.course.productservice.productservice.dtos.FakeStoreProductDto;
+import com.course.productservice.productservice.exceptions.ProductNotFoundException;
 import com.course.productservice.productservice.models.Category;
 import com.course.productservice.productservice.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,20 +21,23 @@ public class FakeStoreProductService implements ProductService{
         this.restTemplate = restTemplate;
     }
     @Override
-    public Product getProductById(Long id) {
+    public Product getProductById(Long id) throws ProductNotFoundException {
         //calling fake store api to get the product using resttemplatte
         //basic way is to create restTemplate here mannually in each api but this is not good practice
         ///2nd way is to tell to spring to create it's bean of restTemplate and inject it whenever
         // reauired using @Configuration and @Bean annotation.
 
         //we know that fake store will return fakestore object that we are mapping with fakestroeproductdto.calss
+        // handle exception globally
+//        int x = 1/0;
         FakeStoreProductDto fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
         //here 1st param = url
         //2nd param = responsetype like here we mapped reponse of fakestore object to
         // fakestoreproductdto here conversion is done by spring internally.
         //now convert dto to product
         if(fakeStoreProductDto == null){
-            return null;
+//            return null;
+            throw new ProductNotFoundException(id, "product with this id does not exist!");
         }
 
         return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
