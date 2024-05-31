@@ -2,6 +2,8 @@ package com.course.productservice.productservice.services;
 
 import com.course.productservice.productservice.Utils.CommonApi;
 import com.course.productservice.productservice.dtos.FakeStoreProductDto;
+import com.course.productservice.productservice.exceptions.ErrorMessage;
+import com.course.productservice.productservice.exceptions.FakeStoreEmptyException;
 import com.course.productservice.productservice.exceptions.ProductNotFoundException;
 import com.course.productservice.productservice.models.Category;
 import com.course.productservice.productservice.models.Product;
@@ -13,6 +15,8 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service // this service annotation will create the object of class at time of initialization
 public class FakeStoreProductService implements ProductService{
@@ -40,17 +44,51 @@ public class FakeStoreProductService implements ProductService{
             throw new ProductNotFoundException(id, "product with this id does not exist!");
         }
 
-        return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
+//        return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto);
+        return FakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto);
     }
 
+
+    /**
+     * why not use List<FakeStoreProductDto>.class => because generic nature of list, array is not generic that's why we have use FakeStoreProductDto[].class as responsetyp
+     * we got array of fakestoreproductdtos, we will have convert it to product
+     */
     @Override
-    public List<Product> getAllProducts() {
+    public List<Product> getAllProducts(int pageNo, int pageSize, String sortBy) {
       FakeStoreProductDto[] fakeStoreProductDtos = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
-      //why not use List<FakeStoreProductDto>.class => because generic nature of list, array is not generic that's why we have use FakeStoreProductDto[].class as responsetyp
-      //we got array of fakestoreproductdtos, we will have convert it to product
+        //let's handle exception here
+        //gather situation in which exception might occur
+        //1. when there is not any prodcut -> we will have to show message "NO PRODUCT EXIST" or "There is no product";
+        // I will have to create our custom class with message
+//         fakeStoreProductDtos = new FakeStoreProductDto[0];
+        if(fakeStoreProductDtos.length == 0){
+            throw new FakeStoreEmptyException(ErrorMessage.NO_PRODUCT_EXIST);
+        }
 
-      return CommonApi.getListOfProductFromFakestoreproductarray(fakeStoreProductDtos);
+        //now implement pagination and sorting
+        //convert the array to stream and sort it
+        Stream<Product> productStream = FakeStoreProductDto.convertListFakeStoreProductDtoToProductList(fakeStoreProductDtos).stream()
+                                .sorted((p1, p2) -> {
+                                    switch (sortBy){
+                                        case "price":
+                                            return Double.compare(p1.getPrice(), p2.getPrice());
+                                        case "id":
+                                        default:
+                                            return Long.compare(p1.getId(), p2.getId());
+                                    }
+                                });
+
+        //apply pagination
+        List<Product> paginatedProducts = productStream
+                                .skip((long) pageNo * pageSize)
+                                .limit(pageSize)
+                                .collect(Collectors.toList());
+
+
+//        return FakeStoreProductDto.convertListFakeStoreProductDtoToProductList(fakeStoreProductDtos);
+        return paginatedProducts;
     }
+
 
     @Override
     public Product replaceProduct(Long id, Product product) {
@@ -81,7 +119,8 @@ public class FakeStoreProductService implements ProductService{
             //throw ProductNotFoundExeception
             return null;
         }
-        return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
+//        return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
+        return FakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto1);
     }
 
     @Override
@@ -106,7 +145,8 @@ public class FakeStoreProductService implements ProductService{
         oldFakeStoreDtoObject.setDescription(product.getDescription());
         restTemplate.put("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject);
 //        restTemplate.patchForObject("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject, FakeStoreProductDto.class);
-        return CommonApi.convertFakeStoreDtoToProduct(oldFakeStoreDtoObject);
+//        return CommonApi.convertFakeStoreDtoToProduct(oldFakeStoreDtoObject);
+        return FakeStoreProductDto.convertFakeStoreProductToProduct(oldFakeStoreDtoObject);
     }
 
     @Override
@@ -117,7 +157,8 @@ public class FakeStoreProductService implements ProductService{
            //handle exeception ProductNotFoundExeception
            return null;
        }
-       return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
+//       return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
+        return FakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto1);
     }
 
 }

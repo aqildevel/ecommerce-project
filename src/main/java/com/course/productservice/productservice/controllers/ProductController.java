@@ -1,6 +1,7 @@
 package com.course.productservice.productservice.controllers;
 
 import com.course.productservice.productservice.dtos.FakeStoreProductDto;
+import com.course.productservice.productservice.exceptions.FakeStoreEmptyException;
 import com.course.productservice.productservice.exceptions.ProductNotFoundException;
 import com.course.productservice.productservice.models.Product;
 import com.course.productservice.productservice.services.ProductService;
@@ -89,9 +90,19 @@ public class ProductController {
 
     //localhost:8080/products/ => @GetMapping("/")
     //localhost:8080/product => @GetMapping("")
+    /**
+     * http://localhost:9191/products?pageNo=1&pageSize=5&sortBy=price
+     * here pageNo = 1, pageSize = 5 and sortBy = price
+     *
+     * http://localhost:9191/products
+     * here, api hit with defaultValue of pageNo, pageSize, sortBy as we have added in controller.
+     */
+
     @GetMapping("")
-    public List<Product> getALlProducts(){
-        return productService.getAllProducts();
+    public List<Product> getALlProducts(@RequestParam(defaultValue = "0") int pageNo,
+                                        @RequestParam(defaultValue = "4") int pageSize,
+                                        @RequestParam(defaultValue = "id") String sortBy) {
+        return productService.getAllProducts(pageNo, pageSize, sortBy);
     }
 
     /*
