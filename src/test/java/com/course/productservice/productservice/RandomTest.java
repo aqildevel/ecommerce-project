@@ -2,13 +2,16 @@ package com.course.productservice.productservice;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class RandomTest {
     @Test
     void testIsOnePlusOneIsTwo(){
         int i = 1+1; //arrange + act
 
         //Assert => check against the expected value, and always hard code expected value
-        assert  i == 2;
+//        assert  i == 2;
+        assertEquals(2, 2);
     }
 
     @Test
@@ -20,14 +23,19 @@ public class RandomTest {
         //act
         int res = Calculator.addNumbers(2,3);
         //assert
-        assert res == 5;
+//        assert res == 5;
+        /*expected value => value that we want to get from the function
+        actual value => value that we are getting from the function*/
+
+        assertEquals(5, res, "actual value that we are getting from function is not equal to expected value" );
     }
     @Test
     public void testSubstractNumber(){
         int a = 5;
         int b = 10;
         int res = Calculator.substractNumbers(a, b);
-        assert res == -5;
+//        assert res == -5;
+        assertEquals(-5, res);
     }
 
     /*

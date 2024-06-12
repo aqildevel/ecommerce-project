@@ -151,7 +151,7 @@ public class FakeStoreProductService implements ProductService{
 
     @Override
     public Product addNewProduct(Product product) {
-        FakeStoreProductDto fakeStoreProductDto = CommonApi.convertProductToFakeStoreDto(product);
+        FakeStoreProductDto fakeStoreProductDto = FakeStoreProductDto.convertProductToFakeStoreDto(product);
        FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.postForObject("https://fakestoreapi.com/products", fakeStoreProductDto, FakeStoreProductDto.class);
        if(fakeStoreProductDto1 == null){
            //handle exeception ProductNotFoundExeception
