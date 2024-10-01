@@ -9,10 +9,13 @@ import com.course.productservice.productservice.models.Category;
 import com.course.productservice.productservice.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +24,7 @@ import java.util.stream.Stream;
 @Service // this service annotation will create the object of class at time of initialization
 public class FakeStoreProductService implements ProductService{
     private RestTemplate restTemplate;
+    private final String baseUrl = "https://fakestoreapi.com/products";
     FakeStoreProductService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
     }
@@ -34,7 +38,7 @@ public class FakeStoreProductService implements ProductService{
         //we know that fake store will return fakestore object that we are mapping with fakestroeproductdto.calss
         // handle exception globally
 //        int x = 1/0;
-        FakeStoreProductDto fakeStoreProductDto = restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
+        FakeStoreProductDto fakeStoreProductDto = restTemplate.getForObject(baseUrl + "/" + id, FakeStoreProductDto.class);
         //here 1st param = url
         //2nd param = responsetype like here we mapped reponse of fakestore object to
         // fakestoreproductdto here conversion is done by spring internally.
@@ -55,7 +59,7 @@ public class FakeStoreProductService implements ProductService{
      */
     @Override
     public List<Product> getAllProducts(int pageNo, int pageSize, String sortBy) {
-      FakeStoreProductDto[] fakeStoreProductDtos = restTemplate.getForObject("https://fakestoreapi.com/products", FakeStoreProductDto[].class);
+      FakeStoreProductDto[] fakeStoreProductDtos = restTemplate.getForObject(baseUrl, FakeStoreProductDto[].class);
         //let's handle exception here
         //gather situation in which exception might occur
         //1. when there is not any prodcut -> we will have to show message "NO PRODUCT EXIST" or "There is no product";
@@ -113,7 +117,7 @@ public class FakeStoreProductService implements ProductService{
         fakeStoreProductDto.setDescription(product.getDescription());
         RequestCallback requestCallback = restTemplate.httpEntityCallback(fakeStoreProductDto, FakeStoreProductDto.class);
         HttpMessageConverterExtractor<FakeStoreProductDto> responseExtractor = new HttpMessageConverterExtractor(FakeStoreProductDto.class, restTemplate.getMessageConverters());
-        FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.execute("https://fakestoreapi.com/products/" + id, HttpMethod.PUT, requestCallback, responseExtractor);
+        FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.execute(baseUrl + "/" + id, HttpMethod.PUT, requestCallback, responseExtractor);
         if(fakeStoreProductDto1 == null){
             //handle excaption
             //throw ProductNotFoundExeception
@@ -138,12 +142,12 @@ public class FakeStoreProductService implements ProductService{
         // use other way to do this
         //first get this object by id
         //update this object and save
-        FakeStoreProductDto oldFakeStoreDtoObject =  restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeStoreProductDto.class);
+        FakeStoreProductDto oldFakeStoreDtoObject =  restTemplate.getForObject(baseUrl + "/" + id, FakeStoreProductDto.class);
         oldFakeStoreDtoObject.setCategory(category.getDescription());
         oldFakeStoreDtoObject.setPrice(product.getPrice());
         oldFakeStoreDtoObject.setTitle(product.getTitile());
         oldFakeStoreDtoObject.setDescription(product.getDescription());
-        restTemplate.put("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject);
+        restTemplate.put(baseUrl + "/" + id, oldFakeStoreDtoObject);
 //        restTemplate.patchForObject("https://fakestoreapi.com/products/" + id, oldFakeStoreDtoObject, FakeStoreProductDto.class);
 //        return CommonApi.convertFakeStoreDtoToProduct(oldFakeStoreDtoObject);
         return FakeStoreProductDto.convertFakeStoreProductToProduct(oldFakeStoreDtoObject);
@@ -152,13 +156,28 @@ public class FakeStoreProductService implements ProductService{
     @Override
     public Product addNewProduct(Product product) {
         FakeStoreProductDto fakeStoreProductDto = FakeStoreProductDto.convertProductToFakeStoreDto(product);
-       FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.postForObject("https://fakestoreapi.com/products", fakeStoreProductDto, FakeStoreProductDto.class);
+       FakeStoreProductDto fakeStoreProductDto1 =  restTemplate.postForObject(baseUrl, fakeStoreProductDto, FakeStoreProductDto.class);
        if(fakeStoreProductDto1 == null){
            //handle exeception ProductNotFoundExeception
            return null;
        }
 //       return CommonApi.convertFakeStoreDtoToProduct(fakeStoreProductDto1);
         return FakeStoreProductDto.convertFakeStoreProductToProduct(fakeStoreProductDto1);
+    }
+
+    @Override
+    public void cancelProduct(Long productid) {
+        //we will have to check whether this product exist or not, we assume that this product is deleted by admin
+        try {
+            restTemplate.delete(baseUrl);
+        } catch (HttpClientErrorException e){
+            if(e.getStatusCode() == HttpStatus.NOT_FOUND){
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product with Id: " + productid + "does not exist!");
+            } else {
+                throw new ResponseStatusException(e.getStatusCode(), e.getStatusText());
+            }
+        }
+
     }
 
 }

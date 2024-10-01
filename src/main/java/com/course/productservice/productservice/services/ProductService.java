@@ -17,4 +17,6 @@ public interface ProductService {
     Product updateProduct(Long id, Product product);
 
     Product addNewProduct(Product product);
+
+    void cancelProduct(Long productid);
 }

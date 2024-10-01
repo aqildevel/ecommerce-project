@@ -1,10 +1,13 @@
 package com.course.productservice.productservice.controllers;
 
+import com.course.productservice.productservice.common.AuthCommons;
 import com.course.productservice.productservice.dtos.FakeStoreProductDto;
+import com.course.productservice.productservice.dtos.UserDto;
 import com.course.productservice.productservice.exceptions.FakeStoreEmptyException;
 import com.course.productservice.productservice.exceptions.ProductNotFoundException;
 import com.course.productservice.productservice.models.Product;
 import com.course.productservice.productservice.services.ProductService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +18,21 @@ import java.util.List;
 
 //localhost:8080/products
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/v1/products")
 public class ProductController {
     private ProductService productService;
+
+    private AuthCommons authCommons;
+
+    private ObjectMapper mapper;
     //at the time of injection, spring will have to inject it's object/bean and this is possible when
     // we add @Service annotation on implemented class
-    ProductController(ProductService productService){
+    ProductController(ProductService productService,
+                      AuthCommons authCommons,
+                      ObjectMapper mapper){
         this.productService = productService;
+        this.authCommons  = authCommons;
+        this.mapper = mapper;
     }
 
     /*
@@ -35,7 +46,19 @@ public class ProductController {
     so use @GetMapping("/{id}")
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) throws ProductNotFoundException {
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id, @RequestHeader("authtoken") String token) throws ProductNotFoundException {
+        //now here once user is login, via user microservice now before access product, product will validate token of
+        //current user by calling validateToken() api of user microservice using RestTemplate if
+        // user's token is validated then access product else return invalid token or not authrized user
+        UserDto userDto = authCommons.validateToken(token);
+        ResponseEntity<Product> responseEntity;
+        if(userDto == null){
+            //user is not authorized
+            responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            return responseEntity;
+        }
+
+
         /*
         ResponseEntity:-
         => when send response from server, here we are only sending product but we haven't handle http status code, header etc and
@@ -78,7 +101,7 @@ public class ProductController {
 //        }
         //use of controlAdvice for global exception handling
         Product product = productService.getProductById(id);
-        ResponseEntity<Product> responseEntity;
+
         if(product == null){
             responseEntity = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             return responseEntity;
@@ -132,6 +155,16 @@ public class ProductController {
     @PostMapping("")
     public Product addNewProduct(@RequestBody Product product){
         return productService.addNewProduct(product);
+    }
+
+    /*
+    * DeleteMapping
+    *
+    */
+    @DeleteMapping("product/{productid}")
+    public String cancelProduct(@PathVariable Long productid){
+        productService.cancelProduct(productid);
+        return "Product with Id: " + productid;
     }
 
 
