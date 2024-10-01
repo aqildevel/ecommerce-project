@@ -161,7 +161,7 @@ public class ProductController {
     * DeleteMapping
     *
     */
-    @DeleteMapping("product/{productid}")
+    @DeleteMapping("/{productid}")
     public String cancelProduct(@PathVariable Long productid){
         productService.cancelProduct(productid);
         return "Product with Id: " + productid;
